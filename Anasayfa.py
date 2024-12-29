@@ -63,13 +63,11 @@ with open("Kaan Başpınar - CV - 12-2024.pdf", "rb") as pdf_file:
 # Footer
 st.markdown("---")
 st.markdown("""
-Developed with ❤️ by Kaan Başpınar
+Developed by Kaan Başpınar
 """)
 
 st.markdown("---")
 st.write("""## Contact 
-
-**Phone number:** +90 507 871 13 47
 
 **e-mail address:** baspinarlee@gmail.com
 """)
