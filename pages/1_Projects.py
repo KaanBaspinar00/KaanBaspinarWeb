@@ -4,6 +4,8 @@ from sensor import start_acquisition, stop_acquisition, save_sensor_data, get_re
 import asyncio
 import plotly.graph_objs as go
 from collections import deque
+import os
+
 # Configure the page
 st.set_page_config(
     page_title="Projects - Kaan Başpınar",
@@ -249,74 +251,80 @@ with tabs[0]:
         # Sensor Data Project
             # Sensor Data Project
             with python_subtabs[1]:
-                st.markdown("### Sensor Data Project")
-                st.write("This project requires using a phone to provide real-time sensor data via WebSocket.")
-                st.divider()
+        st.markdown("### Sensor Data Project")
+        st.write("This project requires using a phone to provide real-time sensor data via WebSocket.")
+        st.divider()
 
-                # Real-time data acquisition controls
-                if st.button("Start Acquisition"):
-                    asyncio.run(start_acquisition())
-                    st.session_state["real_time_plot"] = True
-                    st.success("Data acquisition started! Use your phone to send data via WebSocket.")
+        # Real-time data acquisition controls
+        if st.button("Start Acquisition"):
+            asyncio.run(start_acquisition())
+            st.session_state["real_time_plot"] = True
+            st.success("Data acquisition started! Use your phone to send data via WebSocket.")
 
-                if st.button("Stop Acquisition"):
-                    asyncio.run(stop_acquisition())
-                    st.session_state["real_time_plot"] = False
-                    st.success("Data acquisition stopped!")
+        if st.button("Stop Acquisition"):
+            asyncio.run(stop_acquisition())
+            st.session_state["real_time_plot"] = False
+            st.success("Data acquisition stopped!")
 
-                if st.button("Save Data"):
-                    try:
-                        filename = asyncio.run(save_sensor_data())
-                        st.success(f"Data saved to {filename}")
-                    except Exception as e:
-                        st.error(f"Error saving data: {e}")
+        # Save data as CSV
+        if st.button("Save Data"):
+            try:
+                filename = asyncio.run(save_sensor_data())
+                st.success(f"Data saved to {filename}")
+                with open(filename, "rb") as file:
+                    btn = st.download_button(
+                        label="Download CSV",
+                        data=file,
+                        file_name=filename,
+                        mime="text/csv"
+                    )
+            except Exception as e:
+                st.error(f"Error saving data: {e}")
 
-                # Real-time Plotly graph
-                st.markdown("#### Real-Time Sensor Data")
-                st.write("The graph below shows live data from the phone's sensors.")
+        # Real-time Plotly graph
+        st.markdown("#### Real-Time Sensor Data")
+        st.write("The graph below shows live data from the phone's sensors.")
 
-                # Initialize Plotly graph
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=[], y=[], mode="lines+markers", name="X-Axis"))
-                fig.add_trace(go.Scatter(x=[], y=[], mode="lines+markers", name="Y-Axis"))
-                fig.add_trace(go.Scatter(x=[], y=[], mode="lines+markers", name="Z-Axis"))
-                fig.update_layout(
-                    title="Real-Time Sensor Data",
-                    xaxis_title="Timestamp",
-                    yaxis_title="Sensor Values",
-                    autosize=True,
-                    height=500,
-                    width=800
-                )
+        # Initialize Plotly graph
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=[], y=[], mode="lines+markers", name="X-Axis"))
+        fig.add_trace(go.Scatter(x=[], y=[], mode="lines+markers", name="Y-Axis"))
+        fig.add_trace(go.Scatter(x=[], y=[], mode="lines+markers", name="Z-Axis"))
+        fig.update_layout(
+            title="Real-Time Sensor Data",
+            xaxis_title="Timestamp",
+            yaxis_title="Sensor Values",
+            autosize=True,
+            height=500,
+            width=800
+        )
 
-                # Live data visualization loop
-                if st.session_state["real_time_plot"]:
-                    placeholder = st.empty()  # Placeholder for the Plotly graph
+        # Live data visualization loop
+        if st.session_state["real_time_plot"]:
+            placeholder = st.empty()  # Placeholder for the Plotly graph
 
+            async def update_plot():
+                async for data in get_real_time_data(None):  # Pass WebSocket instance here if testing with live WebSocket
+                    st.session_state["live_data"].append(data)
 
-                    async def update_plot():
-                        async for data in get_real_time_data(websocket=None):  # Pass your WebSocket instance here
-                            st.session_state["live_data"].append(data)
+                    # Extract data for Plotly
+                    timestamps = [d["timestamp"] for d in st.session_state["live_data"]]
+                    x_values = [d["x"] for d in st.session_state["live_data"]]
+                    y_values = [d["y"] for d in st.session_state["live_data"]]
+                    z_values = [d["z"] for d in st.session_state["live_data"]]
 
-                            # Extract data for Plotly
-                            timestamps = [d["timestamp"] for d in st.session_state["live_data"]]
-                            x_values = [d["x"] for d in st.session_state["live_data"]]
-                            y_values = [d["y"] for d in st.session_state["live_data"]]
-                            z_values = [d["z"] for d in st.session_state["live_data"]]
+                    # Update Plotly graph
+                    fig.data[0].x = timestamps
+                    fig.data[0].y = x_values
+                    fig.data[1].x = timestamps
+                    fig.data[1].y = y_values
+                    fig.data[2].x = timestamps
+                    fig.data[2].y = z_values
 
-                            # Update Plotly graph
-                            fig.data[0].x = timestamps
-                            fig.data[0].y = x_values
-                            fig.data[1].x = timestamps
-                            fig.data[1].y = y_values
-                            fig.data[2].x = timestamps
-                            fig.data[2].y = z_values
+                    # Render updated graph
+                    placeholder.plotly_chart(fig, use_container_width=True)
 
-                            # Render updated graph
-                            placeholder.plotly_chart(fig, use_container_width=True)
-
-
-                    asyncio.run(update_plot())
+            asyncio.run(update_plot())
 
 # Zemax Projects
 with tabs[1]:
