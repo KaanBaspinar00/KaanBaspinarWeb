@@ -1,10 +1,9 @@
 import streamlit as st
 from processing import generate_rectangular_plot, generate_convolution_plot, generate_seidel_plot
-from sensor import start_acquisition, stop_acquisition, save_sensor_data, get_real_time_data
-import asyncio
 import plotly.graph_objs as go
 from collections import deque
-import os
+
+from Signals import kernel_density_estimation, image_filtering
 
 # Configure the page
 st.set_page_config(
@@ -43,7 +42,7 @@ with tabs[0]:
     """)
     st.divider()
     # Subtabs for individual Python projects
-    python_subtabs = st.tabs(["Fourier Transform and Fourier Optics", "Using Sensors", "Project 3"])
+    python_subtabs = st.tabs(["Fourier Transform and Fourier Optics", "Signals", "Project 3"])
     # Fourier Transform and Fourier Optics Project
     with python_subtabs[0]:
         # Fourier Transform: Rectangular Function
@@ -248,7 +247,133 @@ with tabs[0]:
             fig = generate_seidel_plot()
             st.plotly_chart(fig)
             st.divider()
+
+    # Signals Subtab
+    with python_subtabs[1]:
+        st.markdown("### 2. Signal Processing Examples")
+        st.write("github page: https://github.com/KaanBaspinar00/SignalProcess/blob/main/Signal-Notes.ipynb")
+        st.divider()
+        # Initialize session states
+        if "show_kde_plot" not in st.session_state:
+            st.session_state["show_kde_plot"] = False
+        if "show_image_filter_plot" not in st.session_state:
+            st.session_state["show_image_filter_plot"] = False
+
+        # Example 1: Kernel Density Estimation
+        st.markdown("#### 2.a Kernel Density Estimation (B-Splines)")
+        st.write("This example demonstrates Kernel Density Estimation using B-splines.")
+        st.code("""
+            def kernel_density_estimation():
+
+                cv = np.array([[50., 25.],
+                               [59., 12.],
+                               [50., 10.],
+                               [57., 2.],
+                               [40., 4.],
+                               [40., 14.]])
             
+                degrees = [1, 2, 3]
+                fig = go.Figure()
+            
+                # Add control points
+                fig.add_trace(go.Scatter(x=cv[:, 0], y=cv[:, 1], mode='lines+markers', name="Control Points"))
+            
+                # Generate B-splines for different degrees
+                for degree in degrees:
+                    count = cv.shape[0]
+                    kv = np.clip(np.arange(count + degree + 1) - degree, 0, count - degree)
+                    max_param = count - degree
+                    spl = interpolate.BSpline(kv, cv, degree)
+                    spline_data = spl(np.linspace(0, max_param, 100))
+                    fig.add_trace(go.Scatter(x=spline_data[:, 0], y=spline_data[:, 1], mode='lines',
+                                             name=f'Degree {degree}'))
+            
+                fig.update_layout(
+                    title="Kernel Density Estimation with B-Splines",
+                    xaxis_title="X",
+                    yaxis_title="Y",
+                    xaxis=dict(range=[35, 70]),
+                    yaxis=dict(range=[0, 30]),
+                    width=800,
+                    height=600
+                )
+            
+                return fig
+
+        """)
+        if st.button("Show KDE Plot"):
+            st.session_state["show_kde_plot"] = True
+        if st.button("Close KDE Plot"):
+            st.session_state["show_kde_plot"] = False
+        if st.session_state["show_kde_plot"]:
+            fig = kernel_density_estimation()
+            st.plotly_chart(fig)
+        st.divider()
+
+        # Example 2: Filtering Images
+        st.markdown("#### 2.b Filtering Images")
+        st.write("This example demonstrates filtering on grayscale images using averaging and edge detection filters.")
+        st.code("""
+            def image_filtering():
+
+                img = ski.data.camera()
+                img_f = np.array(img, dtype=float)
+            
+                # Filters for averaging and edge detection
+                filters = [
+                    np.ones((11, 11)) / 121,  # Averaging filter
+                    np.array([np.ones(11), np.zeros(11), -1 * np.ones(11)]),  # Edge detection (horizontal)
+                ]
+                filters.append(filters[-1].T)  # Edge detection (vertical)
+            
+                # Filter the images
+                filtered = [ndimage.correlate(img_f, filt) for filt in filters]
+            
+                # Binary threshold images
+                binary_horizontal = filtered[1] > 125
+                binary_vertical = filtered[2] > 125
+            
+                # Plot the images
+                fig, axs = plt.subplots(3, 2, figsize=(10, 12))
+                axs[0, 0].imshow(img, cmap="gray")
+                axs[0, 0].set_title("Original Image")
+                axs[0, 1].imshow(filtered[0], cmap="gray")
+                axs[0, 1].set_title("Averaged Image")
+                axs[1, 0].imshow(filtered[1], cmap="gray")
+                axs[1, 0].set_title("Horizontal Edges")
+                axs[1, 1].imshow(filtered[2], cmap="gray")
+                axs[1, 1].set_title("Vertical Edges")
+                axs[2, 0].imshow(binary_horizontal, cmap="gray")
+                axs[2, 0].set_title("Horizontal Binary Edges")
+                axs[2, 1].imshow(binary_vertical, cmap="gray")
+                axs[2, 1].set_title("Vertical Binary Edges")
+            
+                # Remove axes ticks and labels
+                for ax in axs.ravel():
+                    ax.axis("off")
+            
+                # Adjust layout
+                plt.tight_layout()
+            
+                return fig
+
+        """)
+        if st.button("Show Image Filtering Plot"):
+            st.session_state["show_image_filter_plot"] = True
+        if st.button("Close Image Filtering Plot"):
+            st.session_state["show_image_filter_plot"] = False
+        if st.session_state["show_image_filter_plot"]:
+            fig = image_filtering()
+            st.pyplot(fig)
+        st.divider()
+
+    # Signals Subtab
+    with python_subtabs[2]:
+        st.markdown("### 3. Others")
+        st.write("github page: https://github.com/KaanBaspinar00")
+        st.write("Other projects I've done will be shown here soon!")
+        st.divider()
+        
 # Zemax Projects
 with tabs[1]:
     st.header("Zemax Projects")
