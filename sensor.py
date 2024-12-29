@@ -5,6 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ValidationError
 from typing import List
 import random
+import csv
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -82,12 +83,16 @@ async def stop_acquisition():
     logger.info("Data acquisition stopped.")
 
 async def save_sensor_data():
+    """Save sensor data to a CSV file."""
     global sensor_data
-    filename = f"sensor_data_{int(datetime.utcnow().timestamp())}.json"
+    filename = f"sensor_data_{int(datetime.utcnow().timestamp())}.csv"
     try:
         async with data_lock:
-            with open(filename, 'w') as f:
-                json.dump(sensor_data, f)
+            # Write data to CSV
+            with open(filename, mode='w', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=["x", "y", "z", "timestamp"])
+                writer.writeheader()
+                writer.writerows(sensor_data)
             sensor_data = []  # Clear data after saving
         logger.info(f"Data saved to {filename}.")
         return filename
