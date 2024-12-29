@@ -7,13 +7,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Sidebar content
-st.sidebar.title("Navigate")
-st.sidebar.markdown("""
-- Home
-- Projects
-- Contact
-""")
 
 # Main page content
 st.title("Welcome to My Portfolio")
