@@ -2,7 +2,7 @@ import streamlit as st
 
 # Configure the page
 st.set_page_config(
-    page_title="Kaan Başpınar's Portfolio",
+    page_title="My Portfolio",
     page_icon="🎓",
     layout="wide"
 )
@@ -48,7 +48,7 @@ st.write("""
 
 **Interests:** Deep Learning, Neuroscience, Photoplethysmogram (PPG), Opto-electronics
 
-**GitHub:** [Kaan's GitHub](https://github.com/KaanBaspinar00)
+**GitHub:** [My gitHub](https://github.com/KaanBaspinar00)
 """)
 
 with open("Kaan Başpınar - CV - 12-2024.pdf", "rb") as pdf_file:
