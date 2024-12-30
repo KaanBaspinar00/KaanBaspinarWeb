@@ -556,7 +556,6 @@ with tabs[0]:
              
                 ''')
         st.write("github page: https://github.com/KaanBaspinar00/Puplett")
-        st.write("Other projects I've done will be shown here soon!")
         st.divider()
         
 # Zemax Projects
