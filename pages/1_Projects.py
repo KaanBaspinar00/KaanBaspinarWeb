@@ -2,7 +2,7 @@ import streamlit as st
 from processing import generate_rectangular_plot, generate_convolution_plot, generate_seidel_plot
 import plotly.graph_objs as go
 from collections import deque
-
+import streamlit.components.v1 as component
 from Signals import kernel_density_estimation, image_filtering
 
 # Configure the page
@@ -370,6 +370,8 @@ with tabs[0]:
     # Signals Subtab
     with python_subtabs[2]:
         st.markdown("### 3. Others")
+        st.title("Martin Puplett Interferometer Presentation")
+        components.iframe("https://docs.google.com/presentation/d/e/2PACX-1vQ6xA654sg5Lvn2XIFgQFAdVz2VZSPIVerCqwx3kQjaMqDmPayT1_-GpI29JpEhaA/embed?start=false&loop=false&delayms=3000", height= 480)
         st.write("github page: https://github.com/KaanBaspinar00")
         st.write("Other projects I've done will be shown here soon!")
         st.divider()
