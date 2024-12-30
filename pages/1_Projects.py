@@ -42,7 +42,7 @@ with tabs[0]:
     """)
     st.divider()
     # Subtabs for individual Python projects
-    python_subtabs = st.tabs(["Fourier Transform and Fourier Optics", "Signals", "Project 3"])
+    python_subtabs = st.tabs(["Fourier Transform and Fourier Optics", "Signals", "MPI"])
     # Fourier Transform and Fourier Optics Project
     with python_subtabs[0]:
         # Fourier Transform: Rectangular Function
@@ -369,12 +369,195 @@ with tabs[0]:
 
     # Signals Subtab
     with python_subtabs[2]:
-        st.markdown("### 3. Others")
+        st.markdown("### 3. MPI")
         st.title("Martin Puplett Interferometer Presentation")
         components.iframe("https://docs.google.com/presentation/d/e/2PACX-1vQ6xA654sg5Lvn2XIFgQFAdVz2VZSPIVerCqwx3kQjaMqDmPayT1_-GpI29JpEhaA/embed?start=false&loop=false&delayms=3000", height= 480)
-        st.write("github page: https://github.com/KaanBaspinar00")
-        st.write("Other projects I've done will be shown here soon!")
-        st.divider()
+        st.code('''
+        class MPI:
+            def __init__(self, filename = "10pxDataset.csv"):
+                """
+                MPI class performs Fourier analysis, Monte Carlo integration, and plotting on interferogram data.
+        
+                Attributes:
+                    filename (str): The filename of the data to be read.
+                    df (DataFrame): DataFrame to store the read data.
+                    dt (ndarray): Time shift data in seconds.
+                    S (ndarray): Difference interferogram data in relative units.
+                    freq (ndarray): Frequencies from Fourier analysis.
+                    data (ndarray): Processed data for Fourier analysis.
+                    Iw (ndarray): Absolute value of the Fourier transformed data normalized to its maximum value.
+                    filtered_X (ndarray): Filtered frequencies.
+                    filtered_Y (ndarray): Filtered Fourier transformed data corresponding to filtered frequencies.
+                """
+        
+                self.filename = filename
+                self.df = None
+                self.dt = None
+                self.S = None
+                self.freq = None
+                self.data = None
+                self.Iw = None
+                self.filtered_X = None
+                self.filtered_Y = None
+        
+            def read_data(self):
+                """
+        
+                Read data from the specified file.
+        
+                Reads the data file containing difference interferogram data and stores it in a DataFrame.
+                Converts time shift to seconds and difference interferogram to relative units.
+        
+                """
+                self.df = pd.read_csv(self.filename, header=None, sep=",")
+                self.dt = np.array(self.df.iloc[:, 0]) * 1e-12  # Convert picoseconds to seconds
+                self.S = np.array(self.df.iloc[:, 1]) / 10  # Convert to relative units
+        
+            def fourier_analysis(self):
+                """
+                Perform Fourier analysis on the data.
+        
+                Computes the Fourier frequencies, performs Fourier transform,
+                and normalizes the result to its maximum value.
+                """
+        
+                sample_rate = len(self.dt) / (max(self.dt) - min(self.dt))
+                self.freq = fftfreq(len(self.dt), 1 / sample_rate)
+                self.data = self.S
+                self.Iw1 = np.array(ifft(np.array(self.data))[:])
+                self.Iw = np.abs(self.Iw1 / np.max(self.Iw1))
+        
+                # Filtered data where x is greater than 0
+                self.filtered_X = np.array([x for x in self.freq if x > 0])
+                self.filtered_Y = np.array([self.Iw[list(self.freq).index(x)] for x in self.filtered_X])
+        
+            def plot_interferogram(self):
+                """
+                Plot the difference interferogram.
+        
+                Plots the time shift against the difference interferogram.
+                """
+                plt.plot(self.dt[:], self.S[:], ".-b")
+                plt.xlabel('
+        ')
+                plt.ylabel('difference interferogram')
+                plt.grid(True)
+                plt.show()
+        
+            def plot_inverse_fourier_transform(self):
+                """
+                Plot the inverse Fourier transform.
+        
+                Plots the inverse Fourier transform of the difference interferogram.
+                """
+                plt.plot(self.filtered_X, self.filtered_Y, "o-r")
+                plt.title("Inverse Cosine Fourier Transform of \nDifference Interferogram")
+                plt.xlabel("Frequency (THz)")
+                plt.ylabel("Intensity (arbitrary units)")
+                plt.xlim([0, 1 * 10 ** 12])
+                plt.grid()
+                plt.show()
+        
+            def monte_carlo_integration(self, func, a, w, num_samples=1000):
+              wp_samples = np.random.uniform(0, 100, num_samples)  # Adjust the range as needed
+              integral = np.mean(func(wp_samples, a, w))
+        
+              return integral
+              """
+                Perform Monte Carlo integration.
+        
+                Args:
+                    func (function): Function to integrate.
+                    a (float): Value of 'a' in the function.
+                    w (float): Value of 'w' in the function.
+                    num_samples (int): Number of samples for integration.
+        
+                Returns:
+                    float: Result of the Monte Carlo integration.
+               """
+        
+        
+        
+            def integrand(self, wp, a, w):
+                return np.log(a / wp) / (w ** 2 - wp ** 2)
+                """
+                Define the integrand for Monte Carlo integration.
+        
+                Args:
+                    wp (float): Sample value.
+                    a (float): Value of 'a' in the function.
+                    w (float): Value of 'w' in the function.
+        
+                Returns:
+                    float: Value of the integrand at the given point.
+                """
+        
+            def expression(self, a, w):
+                """
+                Define the expression for Monte Carlo integration.
+        
+                Args:
+                    a (float): Value of 'a' in the function.
+                    w (float): Value of 'w' in the function.
+        
+                Returns:
+                    complex: Result of the expression.
+                """
+                integral = self.monte_carlo_integration(self.integrand, a, w)
+                return a * np.exp((1j * 2 * w / np.pi) * integral)
+        
+            def inverse_fourier_transform(self, w_values):
+                """
+                Compute and plot the inverse Fourier transform.
+        
+                Args:
+                    w_values (ndarray): Array of 'w' values for computation.
+                """
+        
+                result = np.zeros((len(w_values), len(self.filtered_X)), dtype=complex)
+                for i, w in enumerate(w_values):
+                    for j, a in enumerate(self.filtered_X):
+                        result[i, j] = self.expression(a, w)
+        
+                inverse_transform = ifft(result, axis=0)
+                plt.figure(figsize=(10, 6))
+                plt.plot(w_values, inverse_transform.real())
+                plt.xlabel('w')
+                plt.ylabel('Inverse Fourier Transform (Real part)')
+                plt.title('Real part of the Inverse Fourier Transform')
+                plt.grid(True)
+                plt.show()
+        
+        
+            def help(self, method=None):
+              """
+              Provide help/documentation for class methods.
+        
+              Args:
+                  method (str, optional): Name of the method to get help for. If None, general class information is displayed.
+        
+              Returns:
+                  str: Help/documentation for the specified method.
+              """
+              if method is None:
+                  return '\n'.join(
+                      f"Documentation for {name}:\n{inspect.getdoc(attr)}"
+                      for name, attr in self.__class__.__dict__.items() if callable(attr) and not name.startswith("__")
+                  )
+              elif method == "all":
+                  return '\n'.join(
+                      f"Documentation for {name}:\n{inspect.getdoc(attr)}"
+                      for name, attr in self.__class__.__dict__.items() if callable(attr) and not name.startswith("__")
+                  )
+              elif isinstance(method, str) and hasattr(self, method):
+                  return inspect.getdoc(getattr(self, method))
+              else:
+                  return f"Method '{method}' not found in MPI class."
+             
+                ''')
+                st.write("github page: https://github.com/KaanBaspinar00/Puplett")
+                st.write("Other projects I've done will be shown here soon!")
+                st.divider()
         
 # Zemax Projects
 with tabs[1]:
