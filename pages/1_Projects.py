@@ -2,7 +2,7 @@ import streamlit as st
 from processing import generate_rectangular_plot, generate_convolution_plot, generate_seidel_plot
 import plotly.graph_objs as go
 from collections import deque
-import streamlit.components.v1 as component
+import streamlit.components.v1 as components
 from Signals import kernel_density_estimation, image_filtering
 
 # Configure the page
