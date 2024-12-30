@@ -555,9 +555,9 @@ with tabs[0]:
                   return f"Method '{method}' not found in MPI class."
              
                 ''')
-                st.write("github page: https://github.com/KaanBaspinar00/Puplett")
-                st.write("Other projects I've done will be shown here soon!")
-                st.divider()
+        st.write("github page: https://github.com/KaanBaspinar00/Puplett")
+        st.write("Other projects I've done will be shown here soon!")
+        st.divider()
         
 # Zemax Projects
 with tabs[1]:
