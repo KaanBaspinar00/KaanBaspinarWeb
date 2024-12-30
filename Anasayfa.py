@@ -28,7 +28,7 @@ st.markdown("""
 You can view my CV details below or download it as a PDF file.
 """)
 
-components.iframe("https://docs.google.com/presentation/d/e/2PACX-1vQ6xA654sg5Lvn2XIFgQFAdVz2VZSPIVerCqwx3kQjaMqDmPayT1_-GpI29JpEhaA/embed?start=false&loop=false&delayms=3000", height= 480)
+component.iframe("https://docs.google.com/presentation/d/e/2PACX-1vQ6xA654sg5Lvn2XIFgQFAdVz2VZSPIVerCqwx3kQjaMqDmPayT1_-GpI29JpEhaA/embed?start=false&loop=false&delayms=3000", height= 480)
 st.write("""
 **Name:** Kaan Başpınar
 
